@@ -70,10 +70,6 @@ export async function parseOutageSchedule(imagePath, { rowLabel = "4.1", debug =
 
     const state = classifyColor(r, g, b);
 
-    if (debug) {
-      console.log(`[${i}] RGB(${r},${g},${b}) → ${state}`);
-    }
-
     slots.push({
       index: i,
       from: minutesToTime(i * minutesPerSlot),

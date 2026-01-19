@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import fs from "fs";
 import dayjs from "dayjs";
-import { IMAGE_PATH, ensureStorage, saveData } from "./elevator.storage.js";
-import { parseOutageSchedule } from "./elevator.parser.js";
+import { IMAGE_PATH, ensureStorage, saveData } from "./schedule.storage.js";
+import { parseOutageSchedule } from "./schedule.parser.js";
 
 const BASE_URL = "https://api-toe-poweron.inneti.net";
 const API_URL = `${BASE_URL}/api/options?option_key=pw_gpv_image_today`;
@@ -11,7 +11,7 @@ const UPDATE_INTERVAL = 10 * 60 * 1000; // 10 хв
 
 async function updateImage() {
   try {
-    console.log("[elevator] updating schedule image…");
+    console.log("[schedule] updating schedule image…");
 
     const res = await fetch(API_URL);
     const data = await res.json();
@@ -31,13 +31,13 @@ async function updateImage() {
       slots: parsedData,
     });
 
-    console.log("[elevator] image updated");
+    console.log("[schedule] image updated");
   } catch (err) {
-    console.error("[elevator] update failed:", err.message);
+    console.error("[schedule] update failed:", err.message);
   }
 }
 
-export function startElevatorUpdater() {
+export function startScheduleUpdater() {
   ensureStorage();
   updateImage(); // одразу при старті
   setInterval(updateImage, UPDATE_INTERVAL);
