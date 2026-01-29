@@ -5,7 +5,7 @@ dayjs.extend(utc);
 import { ensureStorage, saveData } from "./schedule.storage.js";
 
 const BASE_URL = "https://api-toe-poweron.inneti.net";
-const API_URL = `${BASE_URL}/api/actual_gpv_graphs`;
+const API_URL = `${BASE_URL}/api/a_gpv_g`;
 const GROUP = "4.1";
 
 const STATE_MAP = {
@@ -41,8 +41,9 @@ export async function getSchedule() {
 
     const today = dayjs();
     const params = new URLSearchParams({
-      "dateGraph[before]": today.utc().startOf("day").add(1, "day").toISOString(),
-      "dateGraph[after]": today.utc().startOf("day").hour(12).subtract(1, "day").toISOString(),
+      before: today.utc().startOf("day").add(1, "day").toISOString(),
+      after: today.utc().startOf("day").hour(12).subtract(1, "day").toISOString(),
+      "group[]": GROUP,
     });
 
     const url = new URL(API_URL);
