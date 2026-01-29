@@ -1,14 +1,7 @@
-import fs from "fs";
 import dayjs from "dayjs";
-import { IMAGE_PATH, readData } from "./schedule.storage.js";
+import { readData } from "./schedule.storage.js";
 
 export async function getLightStatus() {
-  if (!fs.existsSync(IMAGE_PATH)) {
-    return {
-      result: "Failed to get light status",
-    };
-  }
-
   const data = readData();
   const now = dayjs();
   const currentSlot = data.slots.find(

@@ -3,7 +3,6 @@ import fs from "fs";
 
 const BASE_DIR = path.resolve("data/schedule");
 
-export const IMAGE_PATH = path.join(BASE_DIR, "schedule.png");
 export const DATA_PATH = path.join(BASE_DIR, "data.json");
 
 export function ensureStorage() {

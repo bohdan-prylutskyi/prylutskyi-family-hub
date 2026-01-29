@@ -1,34 +1,62 @@
 import fetch from "node-fetch";
-import fs from "fs";
 import dayjs from "dayjs";
-import { IMAGE_PATH, ensureStorage, saveData } from "./schedule.storage.js";
-import { parseOutageSchedule } from "./schedule.parser.js";
+import utc from "dayjs/plugin/utc.js";
+dayjs.extend(utc);
+import { ensureStorage, saveData } from "./schedule.storage.js";
 
 const BASE_URL = "https://api-toe-poweron.inneti.net";
-const API_URL = `${BASE_URL}/api/options?option_key=pw_gpv_image_today`;
+const API_URL = `${BASE_URL}/api/actual_gpv_graphs`;
+const GROUP = "4.1";
 
-const UPDATE_INTERVAL = 10 * 60 * 1000; // 10 хв
+const STATE_MAP = {
+  0: "on",
+  1: "off",
+  10: "transition",
+};
 
-async function updateImage() {
+const UPDATE_INTERVAL = 10 * 60 * 1000;
+
+function mapTimesToSlots(times, baseDate) {
+  const entries = Object.entries(times).sort(([a], [b]) => a.localeCompare(b));
+
+  return entries.map(([time, rawState], index) => {
+    const [hour, minute] = time.split(":").map(Number);
+
+    const from = baseDate.hour(hour).minute(minute).second(0).millisecond(0);
+
+    const to = from.add(30, "minute");
+
+    return {
+      index,
+      from: from.format(),
+      to: to.format(),
+      state: STATE_MAP[rawState] ?? "unknown",
+    };
+  });
+}
+
+export async function getSchedule() {
   try {
     console.log("[schedule] updating schedule image…");
 
-    const res = await fetch(API_URL);
+    const today = dayjs();
+    const params = new URLSearchParams({
+      "dateGraph[before]": today.utc().startOf("day").add(1, "day").toISOString(),
+      "dateGraph[after]": today.utc().startOf("day").hour(12).subtract(1, "day").toISOString(),
+    });
+
+    const url = new URL(API_URL);
+    url.search = params.toString();
+
+    const res = await fetch(url);
     const data = await res.json();
+    const json = data["hydra:member"]?.[0]?.dataJson;
+    if (!json) throw new Error("Image path not found");
 
-    const imagePath = data["hydra:member"]?.[0]?.value;
-    if (!imagePath) throw new Error("Image path not found");
-
-    const imageUrl = BASE_URL + imagePath;
-
-    const imgRes = await fetch(imageUrl);
-    const buffer = Buffer.from(await imgRes.arrayBuffer());
-
-    fs.writeFileSync(IMAGE_PATH, buffer);
-    const parsedData = await parseOutageSchedule(IMAGE_PATH, { rowLabel: "4.1" });
+    const schedule = json[GROUP];
     saveData({
       updatedAt: dayjs(),
-      slots: parsedData,
+      slots: mapTimesToSlots(schedule.times, today),
     });
 
     console.log("[schedule] image updated");
@@ -39,6 +67,6 @@ async function updateImage() {
 
 export function startScheduleUpdater() {
   ensureStorage();
-  updateImage(); // одразу при старті
-  setInterval(updateImage, UPDATE_INTERVAL);
+  getSchedule();
+  setInterval(getSchedule, UPDATE_INTERVAL);
 }
