@@ -7,6 +7,7 @@ import { ensureStorage, saveData } from "./schedule.storage.js";
 const BASE_URL = "https://api-toe-poweron.inneti.net";
 const API_URL = `${BASE_URL}/api/a_gpv_g`;
 const GROUP = "4.1";
+const TIME = "1032/42035/36";
 
 const STATE_MAP = {
   0: "on",
@@ -44,12 +45,17 @@ export async function getSchedule() {
       before: today.utc().startOf("day").add(1, "day").toISOString(),
       after: today.utc().startOf("day").hour(12).subtract(1, "day").toISOString(),
       "group[]": GROUP,
+      time: TIME.replace(/\//g, ""),
     });
 
     const url = new URL(API_URL);
     url.search = params.toString();
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: {
+        "X-debug-key": btoa(unescape(encodeURIComponent(TIME))),
+      },
+    });
     const data = await res.json();
     const json = data["hydra:member"]?.[0]?.dataJson;
     if (!json) throw new Error("Image path not found");

@@ -15,17 +15,17 @@ export async function getLightStatus() {
   const messages = {
     on:
       "Світло зараз є. " +
-      (nearestSlotWithOppositeState?.state === "on"
-        ? ` Можливе відключення в ${dayjs(nearestSlotWithOppositeState?.from).format("HH:mm")}`
+      (nearestSlotWithOppositeState?.state === "transition"
+        ? `Можливе відключення в ${dayjs(nearestSlotWithOppositeState?.from).format("HH:mm")}`
         : "Сьогодні світло не вимкнуть"),
     off:
       "Світло зараз відсутнє. " +
-      (nearestSlotWithOppositeState?.state === "off"
-        ? ` Мають увімкнути в ${dayjs(nearestSlotWithOppositeState?.from).format("HH:mm")}`
+      (nearestSlotWithOppositeState?.state === "transition"
+        ? `Мають увімкнути в ${dayjs(nearestSlotWithOppositeState?.from).format("HH:mm")}`
         : "Сьогодні світло не увімкнуть"),
     transition:
-      "Зараз жовта зона, світло можуть " +
-      (nearestSlotWithOppositeState?.state === "transition" ? `увімкнути` : "вимкнути") +
+      "Зараз сіра зона, світло можуть " +
+      (nearestSlotWithOppositeState?.state === "on" ? `увімкнути` : `вимкнути`) +
       ` в ${dayjs(nearestSlotWithOppositeState?.from).format("HH:mm")}`,
   };
 
